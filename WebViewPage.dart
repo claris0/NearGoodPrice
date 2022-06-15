@@ -6,10 +6,14 @@ class WebViewPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: WebView(
-        initialUrl: "https://claris0.github.io/good-price-jeju/",
-        javascriptMode: JavascriptMode.unrestricted,
+    final double statusBarHeight = MediaQuery.of(context).padding.top;
+
+    return Scaffold(
+      body: SafeArea(
+        child: WebView(
+          initialUrl: "https://claris0.github.io/good-price-jeju/",
+          javascriptMode: JavascriptMode.unrestricted,
+        ),
       ),
     );
   }

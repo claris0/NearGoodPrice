@@ -8,16 +8,16 @@ class LoadingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    int logoSize = (MediaQuery.of(context).size.width).round();
     return SplashScreenView(
       navigateRoute: WebViewPage(),
       duration: 1500,
-      imageSize: 320,
-      imageSrc: 'assets/images/splash.png',
-      text: ("            우주착""\n""우리 주위의 착한 업소"),
-      textType: TextType.NormalText,
+      imageSize: logoSize,
+      imageSrc: 'assets/images/logo.png',
       textStyle: TextStyle(
         fontSize: 25.0,
       ),
+      textType: TextType.NormalText,
       backgroundColor: Color(0xff9acd32),
     );
   }
