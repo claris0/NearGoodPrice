@@ -12,23 +12,60 @@ class WebViewPage extends StatefulWidget {
   State<WebViewPage> createState() => _WebViewPageState();
 }
 
-Future<bool> locPermission = false as Future<bool>;
+var locationstatus = true;
 
 void requestPermission() async {
-  Map<Permission, PermissionStatus> statuses =
-  await [Permission.location].request();
-  if(Permission.location.request().isGranted == false as Future<bool>){
-    locPermission = true as Future<bool>;
-  } else{
-    locPermission = false as Future<bool>;
+  final serviceStatusLocation = await Permission.locationWhenInUse.isGranted;
+  locationstatus = serviceStatusLocation;
+
+  bool isLocation = (serviceStatusLocation == ServiceStatus.enabled);
+  if (isLocation) {
+    print('위치 기능 비활성화');
   }
+
+  final status = await Permission.locationWhenInUse.request();
+
+  if (status == PermissionStatus.granted) {
+    print('Permission Granted');
+  } else if (status == PermissionStatus.denied) {
+    print('Permission denied');
+  } else if (status == PermissionStatus.permanentlyDenied) {
+    print('Permission Permanently Denied');
+    await openAppSettings();
+  }
+
+  /*
+  if (await Permission.location.serviceStatus.isEnabled) {//위치 서비스 사용 확인
+    locationstatus = await Permission.location.status;
+    if (locationstatus.isGranted) { //위치 권한 부여 확인
+      SnackBar(content: Text("위치 권한 부여가 확인되었습니다"),);
+      return;
+    } else if (locationstatus.isDenied) { //부여가 안되어 있다면
+      if (await Permission.location.isPermanentlyDenied){ //위치권한 영구 거부의 경우
+        SnackBar(content: Text("위치 권한이 영구 거부되어 있습니다"),);
+        openAppSettings(); //앱 설정 변경 창 열기
+      } //
+      Map<Permission, PermissionStatus> locationstatus2 =
+          await [Permission.location].request(); //부여 요청
+
+      SnackBar(content: Text("위치 권한을 요청했습니다."),);
+      return;
+    }
+  } else { //위치 서비스가 사용 확인이 안되는 경우
+    SnackBar(content: Text("휴대폰 위치 서비스를 켜주세요."),);
+    await Permission.location.status;
+    return;
+  }
+
+   */
 }
+
 class _WebViewPageState extends State<WebViewPage> {
   late InAppWebViewController webView;
   HeadlessInAppWebView? headlessWebView;
+  late ContextMenu contextMenu;
   String url = "";
   double progress = 0;
-
 
   InAppWebViewGroupOptions option = InAppWebViewGroupOptions(
       crossPlatform: InAppWebViewOptions(
@@ -44,14 +81,13 @@ class _WebViewPageState extends State<WebViewPage> {
           supportMultipleWindows: true,
           useShouldInterceptRequest: true));
 
-
   @override
   void initState() {
     super.initState();
     requestPermission();
+
     headlessWebView = HeadlessInAppWebView(
-      initialUrlRequest:
-      URLRequest(url: Uri.parse(url)),
+      initialUrlRequest: URLRequest(url: Uri.parse(url)),
       onWebViewCreated: (controller) {
         final snackBar = SnackBar(
           content: Text('HeadlessInAppWebView created!'),
@@ -102,59 +138,53 @@ class _WebViewPageState extends State<WebViewPage> {
     return Scaffold(
         body: SafeArea(
             child: InAppWebView(
-              androidOnGeolocationPermissionsShowPrompt:
-                  (InAppWebViewController controller, String origin) async {
-                bool? result =  locPermission as bool?;
+      androidOnGeolocationPermissionsShowPrompt:
+          (InAppWebViewController controller, String origin) async {
+        bool result = await Permission.locationWhenInUse.isGranted;
 
-                if (result == true) {
-                  Future.value(GeolocationPermissionShowPromptResponse(
-                      origin: origin, allow: true, retain: true));
-                } else {
-                  return Future.value(GeolocationPermissionShowPromptResponse(
-                      origin: origin, allow: false, retain: false));
-                }
-              },
-              initialUrlRequest: URLRequest(
-                  url: Uri.parse("https://claris0.github.io/good-price-jeju/")),
-              initialOptions: option,
-
-              onWebViewCreated: (InAppWebViewController controller) {
-                webView = controller;
-                print("onWebViewCreated");
-              },
-              onLoadStart: (InAppWebViewController controller, uri) {
-                print("onLoadStart $url");
-                setState(() {
-                  this.url = url;
-                });
-              },
-              onLoadStop:
-                  (InAppWebViewController controller, uri) async {
-                print("onLoadStop $url");
-                setState(() {
-                  this.url = url;
-                });
-              },
-              onProgressChanged:
-                  (InAppWebViewController controller, int progress) {
-                setState(() {
-                  this.progress = progress / 100;
-                });
-              },
-              onUpdateVisitedHistory:
-                  (InAppWebViewController controller,
-                  Uri, bool? androidIsReload) {
-                print("onUpdateVisitedHistory $url");
-                setState(() {
-                  this.url = url;
-                });
-              },
-              onConsoleMessage: (controller, consoleMessage) {
-                print(consoleMessage);
-              },
-            )
-        )
-    );
+        if (result == true) {
+          return Future.value(GeolocationPermissionShowPromptResponse(
+              origin: origin, allow: true, retain: true));
+        } else {
+          return Future.value(GeolocationPermissionShowPromptResponse(
+              origin: origin, allow: false, retain: false));
+        }
+      },
+      initialOptions: option,
+      onWebViewCreated: (InAppWebViewController controller) {
+        webView = controller;
+        print("onWebViewCreated");
+      },
+      initialUrlRequest: URLRequest(
+          url: Uri.parse("https://claris0.github.io/good-price-jeju/")),
+      onLoadStart: (InAppWebViewController controller, uri) {
+        print("onLoadStart $url");
+        setState(() {
+          this.url = url;
+        });
+      },
+      onLoadStop: (InAppWebViewController controller, uri) async {
+        print("onLoadStop $url");
+        setState(() {
+          this.url = url;
+        });
+      },
+      onProgressChanged: (InAppWebViewController controller, int progress) {
+        setState(() {
+          this.progress = progress / 100;
+        });
+      },
+      onUpdateVisitedHistory:
+          (InAppWebViewController controller, Uri, bool? androidIsReload) {
+        print("onUpdateVisitedHistory $url");
+        setState(() {
+          this.url = url;
+        });
+      },
+      onConsoleMessage: (controller, consoleMessage) {
+        print(consoleMessage);
+      },
+    )));
   }
 }
 
