@@ -5,6 +5,7 @@
 
 ## 사용법 ##
 *https://github.com/claris0/NearGoodPrice/blob/main/app-release.zip*
+
  : 해당 주소의 압축을 풀어서 apk 다운로드 및 설치.
  
  
